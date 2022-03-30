@@ -52,7 +52,7 @@ impl Terminal {
     }
 
      #[allow(clippy::cast_possible_truncation)]
-    pub fn cursor_position(position: &Position) {
+    pub fn cursor_position(&self, position: &Position) {
          let Position{mut x, mut y} = position;
          let x = x as u16;
          let y = y as u16;
