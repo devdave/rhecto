@@ -1,4 +1,6 @@
 use crate::terminal::Terminal;
+use crate::position::Position;
+
 use crossterm::event::{Event, KeyCode, KeyModifiers};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -19,6 +21,7 @@ impl Editor {
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("Failed to initialize the terminal."),
+            cursor_position: Position {x: 0, y: 0},
         }
     }
 
