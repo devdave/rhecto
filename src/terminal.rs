@@ -4,6 +4,7 @@ use crossterm::cursor::{MoveTo, Show, Hide};
 use crossterm::terminal::{size, ClearType, Clear};
 use crossterm::event::{Event, read };
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen, enable_raw_mode, disable_raw_mode};
+use crate::Position;
 
 pub struct Size {
     pub columns: u16,
@@ -50,7 +51,12 @@ impl Terminal {
         execute!(stdout(), Clear(ClearType::CurrentLine)).ok();
     }
 
-    pub fn set_pos(&self, x: u16, y: u16) {
+     #[allow(clippy::cast_possible_truncation)]
+    pub fn cursor_position(position: &Position) {
+         let Position{mut x, mut y} = position;
+         let x = x as u16;
+         let y = y as u16;
+
         execute!(stdout(), MoveTo(x, y)).expect("Failed to move cursor");
     }
 
