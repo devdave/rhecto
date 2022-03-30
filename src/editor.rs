@@ -5,9 +5,12 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 
 
+
+
 pub struct Editor {
-    pub should_quit: bool,
-    pub terminal: Terminal,
+    should_quit: bool,
+    terminal: Terminal,
+    cursor_position: Position,
 }
 
 impl Editor {
