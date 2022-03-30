@@ -50,12 +50,12 @@ impl Editor {
     fn refresh_screen(&self) {
         self.terminal.cursor_hide();
         self.terminal.clear_screen();
-        self.terminal.set_pos(0,0);
+        self.terminal.cursor_position(&Position { x: 0, y:0 });
         if self.should_quit {
             println!("Good bye!");
         } else {
             self.draw_rows();
-            self.terminal.set_pos(0, 0);
+            self.terminal.cursor_position(&Position {x: 0, y: 0});
         }
 
         self.terminal.cursor_show();
