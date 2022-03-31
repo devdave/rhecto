@@ -1,7 +1,7 @@
 use crate::terminal::Terminal;
 use crate::position::Position;
 
-use crossterm::event::{Event, KeyCode, KeyModifiers};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
