@@ -114,6 +114,9 @@ impl Editor {
                 (_, KeyCode::Enter) => {
                     print!("\r\n");
                 },
+                (_, KeyCode::Up| KeyCode::Down | KeyCode::Left | KeyCode::Right) => {
+                    self.move_cursor(pressed_key);
+                },
                 (_, KeyCode::Char(c)) => {
                     print!("{}", c);
                     self.terminal.flush();
@@ -121,6 +124,7 @@ impl Editor {
                 _ => {
                     println!("No idea {:?}", pressed_key);
                 },
+
 
             }
         }
