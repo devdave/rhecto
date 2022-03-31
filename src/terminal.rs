@@ -20,7 +20,7 @@ impl Terminal {
 
     pub fn default() -> Result<Self, std::io::Error> {
 
-        enable_raw_mode().ok();
+        enable_raw_mode().expect("Unable to enter raw mode!");
         execute!(stdout(), EnterAlternateScreen, MoveTo(0, 0)).expect("Failed to enter Alternate screen mode.");
 
 
