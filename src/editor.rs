@@ -30,18 +30,10 @@ impl Editor {
         }
     }
 
-    pub fn startup(&mut self) {
-
-        // self.draw_rows();
-        // self.terminal.set_pos(0, 0).expect("Failed to move cursor position.");
-        // println!("({}, {})", self.terminal.size().columns, self.terminal.size().rows);
-        self.refresh_screen();
-
-    }
 
     pub fn run(&mut self) {
 
-        self.startup();
+
 
         loop {
             if let Err(error) = self.process_keypress() {
