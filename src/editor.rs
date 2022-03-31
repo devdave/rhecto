@@ -104,6 +104,7 @@ impl Editor {
 
         let height = self.terminal.size().rows - 1;
         // let width = self.terminal.size().columns;
+        let is_empty = self.document.is_empty();
 
         for terminal_row in 0..height {
             self.terminal.clear_current_line();
@@ -111,7 +112,7 @@ impl Editor {
             if let Some(row) = self.document.row(terminal_row as usize) {
                 self.draw_row(row);
 
-            } else if terminal_row == height / 3 {
+            } else if is_empty && terminal_row == height / 3 {
                 self.draw_welcome_message();
             } else {
                 println!("~\r");
