@@ -131,6 +131,7 @@ name = "rhelico"
 version = "0.1.0"
 dependencies = [
  "crossterm",
+ "unicode-segmentation",
 ]
 
 [[package]]
@@ -174,6 +175,12 @@ name = "smallvec"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
+
+[[package]]
+name = "unicode-segmentation"
+version = "1.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e8820f5d777f6224dc4be3632222971ac30164d4a258d595640799554ebfd99"
 
 [[package]]
 name = "winapi"
