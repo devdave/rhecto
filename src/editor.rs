@@ -36,8 +36,9 @@ impl Editor {
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("Failed to initialize the terminal."),
-            document: Document::open(),
+            document,
             cursor_position: Position::default(),
+            offset: Position::default(),
 
         }
     }
