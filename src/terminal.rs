@@ -44,7 +44,7 @@ impl Terminal {
     }
 
     pub fn clear_screen(&self) {
-        execute!(stdout(), Clear(ClearType::All)).ok();
+        execute!(stdout(), Clear(ClearType::Purge)).ok();
     }
 
     pub fn clear_current_line(&self) {
