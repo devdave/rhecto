@@ -134,16 +134,31 @@ impl Editor {
 
     fn move_cursor(&mut self, pressed_key: KeyEvent) {
         let Position { mut x, mut y } = self.cursor_position;
+        let size = self.terminal.size();
+        let height = size.rows as usize;
+        let width = size.columns as usize;
+
+
+
 
         match pressed_key.code {
             KeyCode::Up => y = y.saturating_sub(1),
-            KeyCode::Down => y = y.saturating_add(1),
+            KeyCode::Down => {
+                if y < height {
+                    y = y.saturating_add(1);
+                }
+            },
             KeyCode::Left => x = x.saturating_sub(1),
-            KeyCode::Right => x = x.saturating_add(1),
+            KeyCode::Right => {
+                if x < width {
+                    x = x.saturating_add(1);
+                }
+            }
             _ => (),
         }
+
         self.cursor_position = Position { x, y }
-        
+
     }
 
 
