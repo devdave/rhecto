@@ -3,6 +3,8 @@ use crate::position::Position;
 use crate::document::Document;
 use crate::row::Row;
 
+use std::env;
+
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -21,6 +23,16 @@ pub struct Editor {
 impl Editor {
 
     pub fn default() -> Self {
+
+        let args: Vec<String> = env::args().collect();
+        let document = if args.len() > 1 {
+            let file_name = &args[1];
+            Document::open(&file_name).unwrap_or_default()
+        } else {
+            Document::default()
+        };
+
+
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("Failed to initialize the terminal."),
