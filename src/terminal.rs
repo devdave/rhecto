@@ -24,6 +24,7 @@ impl Terminal {
         execute!(stdout(), EnterAlternateScreen, MoveTo(0, 0)).expect("Failed to enter Alternate screen mode.");
 
 
+
         let sz = size()?;
         Ok(Self {
             size: Size { columns: sz.0, rows: sz.1 },
@@ -31,8 +32,9 @@ impl Terminal {
     }
 
     pub fn shutdown(&self) {
-        execute!(stdout(), LeaveAlternateScreen).expect("Issue leaving alternate screen mode.");
         disable_raw_mode().ok();
+        execute!(stdout(), LeaveAlternateScreen).expect("Issue leaving alternate screen mode.");
+
     }
 
     pub fn size(&self) -> &Size {
