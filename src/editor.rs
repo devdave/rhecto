@@ -24,7 +24,7 @@ impl Editor {
             should_quit: false,
             terminal: Terminal::default().expect("Failed to initialize the terminal."),
             document: Document::default(),
-            cursor_position: Position {x: 0, y: 0},
+            cursor_position: Position::default(),
 
         }
     }
@@ -62,7 +62,7 @@ impl Editor {
     fn refresh_screen(&self) {
         self.terminal.cursor_hide();
         self.terminal.clear_screen();
-        self.terminal.cursor_position(&Position { x: 0, y:0 });
+        self.terminal.cursor_position(&Position::default());
         if self.should_quit {
             println!("Good bye!");
         } else {
