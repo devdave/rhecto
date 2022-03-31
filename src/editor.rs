@@ -193,7 +193,11 @@ impl Editor {
         let Position { mut x, mut y } = self.cursor_position;
         let size = self.terminal.size();
         let height = self.document.len();
-        let width = size.columns as usize;
+        let mut width = if let Some(row) = self.document.row(y) {
+            row.len()
+        } else {
+            0
+        };
 
 
 
@@ -216,6 +220,16 @@ impl Editor {
             KeyCode::Home => x = 0,
             KeyCode::End => x = width,
             _ => (),
+        }
+
+        width = if let Some(row) = self.document.row(y) {
+            row.len()
+        } else {
+            0
+        };
+
+        if x > width {
+            x = width;
         }
 
         self.cursor_position = Position { x, y }
