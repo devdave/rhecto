@@ -119,7 +119,7 @@ impl Editor {
                 (_, KeyCode::Enter) => {
                     print!("\r\n");
                 },
-                (_, KeyCode::Up| KeyCode::Down | KeyCode::Left | KeyCode::Right) => {
+                (_, KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right | KeyCode::PageUp | KeyCode:: PageDown | KeyCode::Home | KeyCode::End) => {
                     self.move_cursor(pressed_key);
                 },
                 (_, KeyCode::Char(c)) => {
@@ -158,7 +158,11 @@ impl Editor {
                 if x < width {
                     x = x.saturating_add(1);
                 }
-            }
+            },
+            KeyCode::PageUp => y = 0,
+            KeyCode::PageDown => y = height,
+            KeyCode::Home => x = 0,
+            KeyCode::End => x = width,
             _ => (),
         }
 
