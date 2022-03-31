@@ -42,9 +42,14 @@ impl Editor {
             if let Err(error) = self.process_keypress() {
                println!("Oh no!");
 
-            } else if self.should_quit {
+            }
+            self.refresh_screen();
+
+            if self.should_quit {
                 break;
             };
+
+
         }
 
         self.shutdown();
@@ -85,7 +90,7 @@ impl Editor {
     pub fn draw_rows(&self) {
         self.terminal.clear_screen();
 
-        let rows = self.terminal.size().rows;
+        let rows = self.terminal.size().rows - 1;
 
         for row in 0..rows {
             self.terminal.clear_current_line();
