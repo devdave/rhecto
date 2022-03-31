@@ -1,3 +1,5 @@
+use std::cmp;
+
 pub struct Row {
     string: String,
 }
