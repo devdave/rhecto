@@ -103,7 +103,7 @@ impl Editor {
         self.terminal.clear_screen();
 
         let height = self.terminal.size().rows - 1;
-        let width = self.terminal.size().columns;
+        // let width = self.terminal.size().columns;
 
         for terminal_row in 0..height {
             self.terminal.clear_current_line();
