@@ -58,7 +58,7 @@ impl Editor {
             println!("Good bye!");
         } else {
             self.draw_rows();
-            self.terminal.cursor_position(&Position {x: 0, y: 0});
+            self.terminal.cursor_position( &self.cursor_position );
         }
 
         self.terminal.cursor_show();
