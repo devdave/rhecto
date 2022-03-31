@@ -212,7 +212,7 @@ impl Editor {
             },
             KeyCode::Left => {
                 if x > 0 {
-                    x -= 1'
+                    x -= 1;
                 } else if y > 0 {
                     y -= 1;
                     if let Some(row) = self.document.row(y) {
