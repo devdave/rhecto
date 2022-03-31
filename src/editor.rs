@@ -190,6 +190,7 @@ impl Editor {
     }
 
     fn move_cursor(&mut self, pressed_key: KeyEvent) {
+        let terminal_height = self.terminal.size().rows as usize;
         let Position { mut x, mut y } = self.cursor_position;
         let size = self.terminal.size();
         let height = self.document.len();
