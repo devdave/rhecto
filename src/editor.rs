@@ -227,8 +227,20 @@ impl Editor {
                     x = x.saturating_add(1);
                 }
             },
-            KeyCode::PageUp => y = 0,
-            KeyCode::PageDown => y = height,
+            KeyCode::PageUp => {
+                y = if y > terminal_height {
+                    y - terminal_height
+                } else {
+                    0
+                };
+            },
+            KeyCode::PageDown => {
+                y = if y.saturating_add(terminal_height) < height {
+                    y + terminal_height as usize
+                } else {
+                    height
+                };
+            },
             KeyCode::Home => x = 0,
             KeyCode::End => x = width,
             _ => (),
