@@ -1,5 +1,6 @@
 use crate::terminal::Terminal;
 use crate::position::Position;
+use crate::document::Document;
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 
@@ -13,6 +14,7 @@ pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
     cursor_position: Position,
+    document: Document,
 }
 
 impl Editor {
@@ -21,7 +23,9 @@ impl Editor {
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("Failed to initialize the terminal."),
+            document: Document::default(),
             cursor_position: Position {x: 0, y: 0},
+
         }
     }
 
