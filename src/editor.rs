@@ -4,11 +4,15 @@ use crate::document::Document;
 use crate::row::Row;
 
 use std::env;
+use std::io::stdout;
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
-use crossterm::style::PrintStyledContent;
+use crossterm::{execute};
+use crossterm::style::{PrintStyledContent, Print, SetForegroundColor, SetBackgroundColor, ResetColor, Color, Attribute, Stylize};
+
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+const STATUS_BG_COLOR: Color = Color::Rgb{r: 239, g: 239, b: 239};
 
 
 
@@ -75,6 +79,9 @@ impl Editor {
             println!("Good bye!");
         } else {
             self.draw_rows();
+            self.draw_status_bar();
+            self.draw_message_bar();
+
             self.terminal.cursor_position( &Position {
                 x: self.cursor_position.x.saturating_sub(self.offset.x),
                 y: self.cursor_position.y.saturating_sub(self.offset.y),
@@ -83,6 +90,21 @@ impl Editor {
 
         self.terminal.cursor_show();
         self.terminal.flush();
+    }
+
+    fn draw_status_bar(&self) {
+        let spaces = " ".repeat(self.terminal.size().columns as usize);
+        // execute!(stdout(),
+        //     SetBackgroundColor(STATUS_BG_COLOR),
+        //     Print(spaces),
+        //     ResetColor
+        // );
+        println!("{}{}\r", spaces.on(STATUS_BG_COLOR), "".reset());
+
+    }
+
+    fn draw_message_bar(&self) {
+        self.terminal.clear_current_line();
     }
 
     pub fn shutdown(&self) {
@@ -112,7 +134,7 @@ impl Editor {
         println!("{}\r", row)
     }
 
-    pub fn draw_rows(&self) {
+    pub fn  draw_rows(&self) {
         self.terminal.clear_screen();
 
         let height = self.terminal.size().rows - 1;
