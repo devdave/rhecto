@@ -27,7 +27,10 @@ impl Terminal {
 
         let sz = size()?;
         Ok(Self {
-            size: Size { columns: sz.0, rows: sz.1 },
+            size: Size {
+                columns: sz.0,
+                rows: sz.1.saturating_sub(2),
+            },
         })
     }
 
