@@ -99,6 +99,7 @@ impl Editor {
         //     Print(spaces),
         //     ResetColor
         // );
+
         println!("{}{}\r", spaces.on(STATUS_BG_COLOR), "".reset());
 
     }
