@@ -1,5 +1,7 @@
+use std::io;
 use std::io::{stdout, Write};
-use crossterm::{execute};
+use crossterm::{ExecutableCommand, execute};
+use crossterm::style::{Stylize, SetBackgroundColor, SetForegroundColor, ResetColor, Color};
 use crossterm::cursor::{MoveTo, Show, Hide};
 use crossterm::terminal::{size, ClearType, Clear};
 use crossterm::event::{Event, read };
@@ -54,6 +56,14 @@ impl Terminal {
 
     pub fn clear_current_line(&self) {
         execute!(stdout(), Clear(ClearType::CurrentLine)).ok();
+    }
+
+    pub fn set_bg_color(&self, color: Color) {
+        stdout().execute(SetBackgroundColor(color)).expect("Failed changing background color");
+    }
+
+    pub fn reset_bg_color(&self) {
+        stdout().execute(SetBackgroundColor(Color::Reset)).expect("Unable to reset bg color!");
     }
 
      #[allow(clippy::cast_possible_truncation)]
