@@ -104,6 +104,25 @@ impl Editor {
         self.terminal.flush();
     }
 
+    fn save(&mut self) {
+        if self.document.file_name.is_none() {
+
+            let new_name = self.prompt("Save as: ").unwrap_or(None);
+
+            if new_name.is_none() {
+                self.status_message = StatusMessage::from("Save aborted!".to_string());
+                return;
+            }
+            self.document.file_name = Some(new_name);
+        }
+
+        if self.document.save().is_ok() {
+            self.status_message = StatusMessage::from("File saved successfully".to_string());
+        } else {
+            self.status_message = StatusMessage::from("Error writing file!".to_string());
+        }
+    }
+
     fn draw_status_bar(&self) {
         // let spaces = " ".repeat(self.terminal.size().columns as usize);
 
