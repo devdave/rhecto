@@ -240,6 +240,48 @@ impl Editor {
         Ok(())
     }
 
+    fn prompt(&mut self, prompt: &str) -> Result<Option<String>, std::io::Error> {
+        let mut result = String::new();
+
+        loop {
+            self.status_message = StatusMessage::from(format!("{}{}", prompt, result));
+            self.refresh_screen();
+            if let Event::Key(pressed_key) = self.terminal.read_key()? {
+
+                match pressed_key.code {
+                    KeyCode::Enter => break,
+                    KeyCode::Char(c) => {
+                        if pressed_key.modifiers != KeyModifiers::CONTROL {
+                            result.push(c);
+                        }
+                    },
+                    KeyCode::Backspace => {
+                        if !result.is_empty() {
+                            result.truncate(result.len()-1);
+                        }
+                    },
+                    KeyCode::Esc => {
+                        result.truncate(0);
+                        break;
+                    },
+                    _ => (),
+
+                }
+
+
+            }
+
+        }
+
+        self.status_message = StatusMessage::from(String::new());
+        if result.is_empty() {
+            return Ok(None);
+        }
+
+        Ok(Some(result))
+
+    }
+
     fn scroll(&mut self) {
         let Position {x, y} = self.cursor_position;
         let width = self.terminal.size().columns as usize;
