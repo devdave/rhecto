@@ -1,6 +1,10 @@
 use std::fs;
+use std::io::{Error, Write};
 use crate::row::Row;
 use crate::position::Position;
+
+use crossterm::event::KeyCode;
+
 
 #[derive(Default)]
 pub struct Document {
@@ -39,7 +43,7 @@ impl Document {
         self.rows.len()
     }
 
-    fn insert_newline(&mut self, at: &Position) {
+    pub fn insert_newline(&mut self, at: &Position) {
         if at.y > self.len() {
             return;
         }
@@ -95,6 +99,19 @@ impl Document {
             row.delete(at.x);
 
         }
+    }
+
+    pub fn save(&self) -> Result<(), Error> {
+
+        if let Some(file_name) = &self.file_name {
+            let mut file = fs::File::create(file_name)?;
+            for row in &self.rows {
+                file.write_all(row.as_bytes())?;
+                file.write_all(b"\n")?;
+            }
+        }
+
+        Ok(())
     }
 
 
