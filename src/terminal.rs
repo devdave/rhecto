@@ -66,6 +66,14 @@ impl Terminal {
         stdout().execute(SetBackgroundColor(Color::Reset)).expect("Unable to reset bg color!");
     }
 
+    pub fn set_fg_color(&self, color: Color) {
+        stdout().execute(SetForegroundColor(color)).expect("Failed to set FG color");
+    }
+
+    pub fn reset_fg_color(&self) {
+        stdout().execute(SetForegroundColor(Color::Reset)).expect("Failed to reset FG color");
+    }
+
      #[allow(clippy::cast_possible_truncation)]
     pub fn cursor_position(&self, position: &Position) {
          let Position{x, y} = position;
