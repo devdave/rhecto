@@ -5,10 +5,14 @@ use crate::row::Row;
 use crate::statusmessage::StatusMessage;
 
 use std::env;
+use std::fs::read_dir;
+use std::io::ErrorKind::HostUnreachable;
 // use std::io::{repeat, stdout};
 use std::time::{Instant, Duration};
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::Event::Key;
+use crossterm::event::KeyCode::PageDown;
 // use crossterm::{execute};
 use crossterm::style::{PrintStyledContent, Print, SetForegroundColor, SetBackgroundColor, ResetColor, Color, Attribute, Stylize};
 
@@ -34,7 +38,7 @@ impl Editor {
     pub fn default() -> Self {
 
         let args: Vec<String> = env::args().collect();
-        let mut initial_status = String::from("HELP: Ctrl+q = quit");
+        let mut initial_status = String::from("HELP: Ctrl+s == save | Ctrl+q = quit");
         let document = if args.len() > 1 {
             let file_name = &args[1];
             // Document::open(&file_name).unwrap_or_default()
@@ -230,13 +234,9 @@ impl Editor {
                 (KeyModifiers::CONTROL, KeyCode::Char('q')) => {
                     self.should_quit = true;
                 },
+                (KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
                 (_, KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right | KeyCode::PageUp | KeyCode:: PageDown | KeyCode::Home | KeyCode::End) => {
                     self.move_cursor(pressed_key);
-                },
-                (_, KeyCode::Char(c)) => {
-                    self.document.insert(&self.cursor_position, c);
-                    self.move_cursor_by_key(KeyCode::Right);
-
                 },
                 (_, KeyCode::Delete) => {
                   self.document.delete(&self.cursor_position);
@@ -246,7 +246,16 @@ impl Editor {
                         self.move_cursor_by_key(KeyCode::Left);
                         self.document.delete(&self.cursor_position);
                     }
-                }
+                },
+                (_, KeyCode::Enter) => {
+                    self.document.insert_newline(&self.cursor_position);
+                    self.move_cursor_by_key(KeyCode::Down);
+                },
+                (_, KeyCode::Char(c)) => {
+                    self.document.insert(&self.cursor_position, c);
+                    self.move_cursor_by_key(KeyCode::Right);
+
+                },
                 _ => {
                     // println!("No idea {:?}", pressed_key);
                 },
