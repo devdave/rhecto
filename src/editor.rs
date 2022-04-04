@@ -2,18 +2,20 @@ use crate::terminal::Terminal;
 use crate::position::Position;
 use crate::document::Document;
 use crate::row::Row;
+use crate::statusmessage::StatusMessage;
 
 use std::env;
-use std::io::stdout;
+// use std::io::{repeat, stdout};
+use std::time::{Instant, Duration};
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
-use crossterm::{execute};
+// use crossterm::{execute};
 use crossterm::style::{PrintStyledContent, Print, SetForegroundColor, SetBackgroundColor, ResetColor, Color, Attribute, Stylize};
 
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const STATUS_BG_COLOR: Color = Color::Rgb{r: 239, g: 239, b: 239};
-
+const STATUS_FG_COLOR: Color = Color::Rgb{r: 63, g: 63, b: 63};
 
 
 
@@ -24,6 +26,7 @@ pub struct Editor {
     cursor_position: Position,
     offset: Position,
     document: Document,
+    status_message: StatusMessage,
 }
 
 impl Editor {
@@ -31,9 +34,17 @@ impl Editor {
     pub fn default() -> Self {
 
         let args: Vec<String> = env::args().collect();
+        let mut initial_status = String::from("HELP: Ctrl+q = quit");
         let document = if args.len() > 1 {
             let file_name = &args[1];
-            Document::open(&file_name).unwrap_or_default()
+            // Document::open(&file_name).unwrap_or_default()
+            let doc = Document::open(&file_name);
+            if doc.is_ok() {
+                doc.unwrap()
+            } else {
+                initial_status = format!("ERR: Could not open file: {}", file_name);
+                Document::default()
+            }
         } else {
             Document::default()
         };
@@ -45,6 +56,7 @@ impl Editor {
             document,
             cursor_position: Position::default(),
             offset: Position::default(),
+            status_message: StatusMessage::from(initial_status),
 
         }
     }
@@ -93,19 +105,52 @@ impl Editor {
     }
 
     fn draw_status_bar(&self) {
-        let spaces = " ".repeat(self.terminal.size().columns as usize);
-        // execute!(stdout(),
-        //     SetBackgroundColor(STATUS_BG_COLOR),
-        //     Print(spaces),
-        //     ResetColor
-        // );
+        // let spaces = " ".repeat(self.terminal.size().columns as usize);
 
-        println!("{}{}\r", spaces.on(STATUS_BG_COLOR), "".reset());
+        let mut status;
+        let width = self.terminal.size().columns as usize;
+        let mut file_name = "[No Name]".to_string();
+        if let Some(name) = &self.document.file_name {
+            file_name = name.clone();
+            file_name.truncate(20);
 
+        }
+
+
+        status = format!("{} - {} lines", file_name, self.document.len());
+
+
+
+        let line_indicator = format!("{}/{}",
+                                     self.cursor_position.y.saturating_add(1),
+                                     self.document.len(),
+                                    );
+
+        let len = status.len() + line_indicator.len();
+        if width > len {
+            status.push_str(&" ".repeat(width - len));
+        }
+
+        status = format!("{}{}", status, line_indicator);
+
+        status.truncate(width);
+
+        self.terminal.set_bg_color(STATUS_BG_COLOR);
+        self.terminal.set_fg_color(STATUS_FG_COLOR);
+        println!("{}\r", status);
+        self.terminal.reset_bg_color();
+        self.terminal.reset_fg_color();
     }
 
     fn draw_message_bar(&self) {
         self.terminal.clear_current_line();
+        let message = &self.status_message;
+        if Instant::now() - message.time < Duration::new(5, 0) {
+            let mut text = message.text.clone();
+            text.truncate(self.terminal.size().columns as usize);
+            print!("{}",text);
+        }
+
     }
 
     pub fn shutdown(&self) {
@@ -138,7 +183,7 @@ impl Editor {
     pub fn  draw_rows(&self) {
         self.terminal.clear_screen();
 
-        let height = self.terminal.size().rows - 1;
+        let height = self.terminal.size().rows;
         // let width = self.terminal.size().columns;
         let is_empty = self.document.is_empty();
 
@@ -147,7 +192,6 @@ impl Editor {
 
             if let Some(row) = self.document.row(terminal_row as usize + self.offset.y) {
                 self.draw_row(row);
-
             } else if is_empty && terminal_row == height / 3 {
                 self.draw_welcome_message();
             } else {
@@ -167,21 +211,25 @@ impl Editor {
                 (KeyModifiers::CONTROL, KeyCode::Char('q')) => {
                     self.should_quit = true;
                 },
-                (KeyModifiers::CONTROL, KeyCode::Char('l')) => {
-                    self.terminal.clear_screen();
-                },
-                (_, KeyCode::Enter) => {
-                    print!("\r\n");
-                },
                 (_, KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right | KeyCode::PageUp | KeyCode:: PageDown | KeyCode::Home | KeyCode::End) => {
                     self.move_cursor(pressed_key);
                 },
                 (_, KeyCode::Char(c)) => {
-                    print!("{}", c);
-                    self.terminal.flush();
+                    self.document.insert(&self.cursor_position, c);
+                    self.move_cursor_by_key(KeyCode::Right);
+
                 },
+                (_, KeyCode::Delete) => {
+                  self.document.delete(&self.cursor_position);
+                },
+                (_, KeyCode::Backspace) => {
+                    if self.cursor_position.x > 0 || self.cursor_position.y > 0 {
+                        self.move_cursor_by_key(KeyCode::Left);
+                        self.document.delete(&self.cursor_position);
+                    }
+                }
                 _ => {
-                    println!("No idea {:?}", pressed_key);
+                    // println!("No idea {:?}", pressed_key);
                 },
 
 
@@ -212,10 +260,10 @@ impl Editor {
         }
     }
 
-    fn move_cursor(&mut self, pressed_key: KeyEvent) {
+    pub fn move_cursor_by_key(&mut self, key: KeyCode) {
         let terminal_height = self.terminal.size().rows as usize;
         let Position { mut x, mut y } = self.cursor_position;
-        let size = self.terminal.size();
+
         let height = self.document.len();
         let mut width = if let Some(row) = self.document.row(y) {
             row.len()
@@ -223,7 +271,77 @@ impl Editor {
             0
         };
 
+        match key {
+            KeyCode::Up => y = y.saturating_sub(1),
+            KeyCode::Down => {
+                if y < height {
+                    y = y.saturating_add(1);
+                }
+            },
+            KeyCode::Left => {
+                if x > 0 {
+                    x -= 1;
+                } else if y > 0 {
+                    y -= 1;
+                    if let Some(row) = self.document.row(y) {
+                        x = row.len();
+                    } else {
+                        x = 0;
+                    }
+                }
 
+            },
+            KeyCode::Right => {
+                if x < width {
+                    x += 1;
+                } else if y < height {
+                    y += 1;
+                    x = 0;
+                }
+            },
+            KeyCode::PageUp => {
+                y = if y > terminal_height {
+                    y - terminal_height
+                } else {
+                    0
+                };
+            },
+            KeyCode::PageDown => {
+                y = if y.saturating_add(terminal_height) < height {
+                    y + terminal_height as usize
+                } else {
+                    height
+                };
+            },
+            KeyCode::Home => x = 0,
+            KeyCode::End => x = width,
+            _ => (),
+        }
+
+        width = if let Some(row) = self.document.row(y) {
+            row.len()
+        } else {
+            0
+        };
+
+        if x > width {
+            x = width;
+        }
+
+        self.cursor_position = Position { x, y }
+    }
+
+
+    pub fn move_cursor(&mut self, pressed_key: KeyEvent) {
+        let terminal_height = self.terminal.size().rows as usize;
+        let Position { mut x, mut y } = self.cursor_position;
+
+        let height = self.document.len();
+        let mut width = if let Some(row) = self.document.row(y) {
+            row.len()
+        } else {
+            0
+        };
 
 
         match pressed_key.code {
