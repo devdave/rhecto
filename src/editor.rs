@@ -5,21 +5,21 @@ use crate::row::Row;
 use crate::statusmessage::StatusMessage;
 
 use std::env;
-use std::fs::read_dir;
-use std::io::ErrorKind::HostUnreachable;
-// use std::io::{repeat, stdout};
+
+
 use std::time::{Instant, Duration};
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
-use crossterm::event::Event::Key;
-use crossterm::event::KeyCode::PageDown;
-// use crossterm::{execute};
+
+
+
 use crossterm::style::{PrintStyledContent, Print, SetForegroundColor, SetBackgroundColor, ResetColor, Color, Attribute, Stylize};
 
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const STATUS_BG_COLOR: Color = Color::Rgb{r: 239, g: 239, b: 239};
 const STATUS_FG_COLOR: Color = Color::Rgb{r: 63, g: 63, b: 63};
+const QUIT_TIMES: u8 = 3;
 
 
 
@@ -31,6 +31,7 @@ pub struct Editor {
     offset: Position,
     document: Document,
     status_message: StatusMessage,
+    quit_times: u8
 }
 
 impl Editor {
@@ -42,7 +43,8 @@ impl Editor {
         let document = if args.len() > 1 {
             let file_name = &args[1];
             // Document::open(&file_name).unwrap_or_default()
-            let doc = Document::open(&file_name);
+            let doc = Document::open(file_name);
+
             if doc.is_ok() {
                 doc.unwrap()
             } else {
@@ -61,6 +63,7 @@ impl Editor {
             cursor_position: Position::default(),
             offset: Position::default(),
             status_message: StatusMessage::from(initial_status),
+            quit_times: QUIT_TIMES,
 
         }
     }
@@ -117,7 +120,7 @@ impl Editor {
                 self.status_message = StatusMessage::from("Save aborted!".to_string());
                 return;
             }
-            self.document.file_name = Some(new_name);
+            self.document.file_name = new_name;
         }
 
         if self.document.save().is_ok() {
@@ -132,6 +135,12 @@ impl Editor {
 
         let mut status;
         let width = self.terminal.size().columns as usize;
+        let modified_indicator = if self.document.is_dirty() {
+            " (modified)"
+        } else {
+            ""
+        };
+
         let mut file_name = "[No Name]".to_string();
         if let Some(name) = &self.document.file_name {
             file_name = name.clone();
@@ -140,7 +149,7 @@ impl Editor {
         }
 
 
-        status = format!("{} - {} lines", file_name, self.document.len());
+        status = format!("{} - {} lines {}", file_name, self.document.len(), modified_indicator);
 
 
 
@@ -232,6 +241,15 @@ impl Editor {
             match (pressed_key.modifiers, pressed_key.code) {
 
                 (KeyModifiers::CONTROL, KeyCode::Char('q')) => {
+                    if self.quit_times > 0 && self.document.is_dirty() {
+                        self.status_message = StatusMessage::from(format!(
+                           "WARNING! File has unsaved changes. Press ctrl+q {} more times to quit.",
+                            self.quit_times
+                        ));
+                        self.quit_times -= 1;
+                        return Ok(());
+                    }
+
                     self.should_quit = true;
                 },
                 (KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
@@ -265,6 +283,10 @@ impl Editor {
         }
 
         self.scroll();
+        if self.quit_times < QUIT_TIMES {
+            self.quit_times = QUIT_TIMES;
+            self.status_message = StatusMessage::from(String::new());
+        }
         Ok(())
     }
 
